@@ -1,0 +1,513 @@
+<!-- web/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MiniASM IDE</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ========================================= -->
+        <!-- TOOLBAR -->
+        <!-- ========================================= -->
+
+        <div class="toolbar">
+
+            <button onclick="assembleCode()">
+                Assemble
+            </button>
+
+            <button onclick="runCode()">
+                Run
+            </button>
+
+            <button onclick="resetIDE()">
+                Reset
+            </button>
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- MAIN LAYOUT -->
+        <!-- ========================================= -->
+
+        <div class="main-layout">
+
+            <!-- ===================================== -->
+            <!-- CODE EDITOR -->
+            <!-- ===================================== -->
+
+            <div class="panel editor-panel">
+
+                <div class="panel-title">
+                    Code Editor
+                </div>
+
+                <div class="editor-wrapper">
+
+                    <div id="lineNumbers"></div>
+
+                    <textarea id="editor">
+
+NUMBER A
+NUMBER B
+NUMBER RESULT
+
+A = 10
+B = 20
+
+RESULT = A + B
+
+TMP = B + 0
+TMP2 = A * 1
+
+SHOW RESULT
+
+                    </textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- ===================================== -->
+            <!-- CENTER -->
+            <!-- ===================================== -->
+
+            <div class="center-layout">
+
+                <!-- TOP INFO -->
+
+                <div class="top-info">
+
+                    <!-- MEMORY -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+                            Memory
+                        </div>
+
+                        <table id="memoryTable">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Variable</th>
+
+                                    <th>Value</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <!-- SYMBOL TABLE -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+                            Symbol Table
+                        </div>
+
+                        <table id="symbolTable">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Symbol</th>
+
+                                    <th>Address</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOTTOM PANEL -->
+
+                <!-- REPLACE ONLY THE BOTTOM PANEL INSIDE index.html -->
+
+                <div class="panel">
+
+                    <!-- ================================= -->
+                    <!-- TOP TABS -->
+                    <!-- ================================= -->
+
+                    <div class="tabs">
+
+                        <button onclick="showTab('output')">
+                            Output
+                        </button>
+
+                        <button onclick="showTab('debug')">
+                            Debug
+                        </button>
+
+                        <button onclick="showTab('ast')">
+                            AST
+                        </button>
+
+                        <button onclick="showTab('errors')">
+                            Errors
+                        </button>
+
+                        <button onclick="showTab('optimization')">
+                            Optimization
+                        </button>
+
+                    </div>
+
+
+                    <!-- ================================= -->
+                    <!-- CONTENT -->
+                    <!-- ================================= -->
+
+                    <div class="bottom-layout">
+
+                        <!-- ============================= -->
+                        <!-- LEFT -->
+                        <!-- ============================= -->
+
+                        <div class="left-tabs">
+
+                            <div class="tab-content">
+
+                                <pre id="output"
+                                    class="tab-panel"></pre>
+
+                                <pre id="debug"
+                                    class="tab-panel hidden"></pre>
+
+                                <pre id="ast"
+                                    class="tab-panel hidden"></pre>
+
+                                <pre id="errors"
+                                    class="tab-panel hidden"></pre>
+
+                                <pre id="optimization"
+                                    class="tab-panel hidden"></pre>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ============================= -->
+                        <!-- RIGHT -->
+                        <!-- ============================= -->
+
+                        <div class="codegen-panel">
+
+                            <!-- RADIO -->
+
+                            <div class="radio-toolbar">
+
+                                <label>
+
+                                    <input type="radio"
+                                        name="codeType"
+                                        checked
+                                        onclick="showCode('intermediate')">
+
+                                    Intermediate Code
+
+                                </label>
+
+                                <label>
+
+                                    <input type="radio"
+                                        name="codeType"
+                                        onclick="showCode('machine')">
+
+                                    Machine Code
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- CODE VIEW -->
+
+                            <div class="code-view">
+
+                                <pre id="intermediate"></pre>
+
+                                <pre id="machine"
+                                    class="hidden"></pre>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ===================================== -->
+            <!-- TRANSLATION TABLE -->
+            <!-- ===================================== -->
+
+            <div class="panel translation-panel">
+
+                <div class="panel-title">
+                    Translation Table
+                </div>
+
+                <table id="opcodeTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Category</th>
+                            <th>Friendly Syntax</th>
+                            <th>Meaning</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <!-- VARIABLES -->
+
+                        <tr>
+                            <td>A DS 1</td>
+                            <td>NUMBER A</td>
+                            <td>Create number variable</td>
+                        </tr>
+
+                        <tr>
+                            <td>A DC 5</td>
+                            <td>NUMBER A = 5</td>
+                            <td>Create initialized variable</td>
+                        </tr>
+
+                        <tr>
+                            <td>DB</td>
+                            <td>TEXT</td>
+                            <td>Define text</td>
+                        </tr>
+
+                        <tr>
+                            <td>ARRAY</td>
+                            <td>LIST</td>
+                            <td>Define list</td>
+                        </tr>
+
+                        <!-- INPUT OUTPUT -->
+
+                        <tr>
+                            <td>READ A</td>
+                            <td>ASK A</td>
+                            <td>Input value</td>
+                        </tr>
+
+                        <tr>
+                            <td>INPUT A</td>
+                            <td>ASK A</td>
+                            <td>Input value</td>
+                        </tr>
+
+                        <tr>
+                            <td>PRINT A</td>
+                            <td>SHOW A</td>
+                            <td>Display value</td>
+                        </tr>
+
+                        <tr>
+                            <td>WRITE A</td>
+                            <td>SHOW A</td>
+                            <td>Output value</td>
+                        </tr>
+
+                        <tr>
+                            <td>OUTPUT A</td>
+                            <td>SHOW A</td>
+                            <td>Output value</td>
+                        </tr>
+
+                        <!-- MEMORY -->
+
+                        <tr>
+                            <td>LOAD A</td>
+                            <td>USE A</td>
+                            <td>Load variable</td>
+                        </tr>
+
+                        <tr>
+                            <td>STORE RESULT</td>
+                            <td>SAVE RESULT</td>
+                            <td>Save accumulator</td>
+                        </tr>
+
+                        <tr>
+                            <td>MOV A</td>
+                            <td>USE A</td>
+                            <td>Move/load value</td>
+                        </tr>
+
+                        <tr>
+                            <td>MOV A B</td>
+                            <td>A = B</td>
+                            <td>Copy value</td>
+                        </tr>
+
+                        <!-- ARITHMETIC -->
+
+                        <tr>
+                            <td>ADD B</td>
+                            <td>+ B</td>
+                            <td>Add</td>
+                        </tr>
+
+                        <tr>
+                            <td>SUB B</td>
+                            <td>- B</td>
+                            <td>Subtract</td>
+                        </tr>
+
+                        <tr>
+                            <td>MUL B</td>
+                            <td>* B</td>
+                            <td>Multiply</td>
+                        </tr>
+
+                        <tr>
+                            <td>DIV B</td>
+                            <td>/ B</td>
+                            <td>Divide</td>
+                        </tr>
+
+                        <tr>
+                            <td>MOD B</td>
+                            <td>% B</td>
+                            <td>Modulus</td>
+                        </tr>
+
+                        <tr>
+                            <td>INC A</td>
+                            <td>A = A + 1</td>
+                            <td>Increment</td>
+                        </tr>
+
+                        <tr>
+                            <td>DEC A</td>
+                            <td>A = A - 1</td>
+                            <td>Decrement</td>
+                        </tr>
+
+                        <!-- ASSIGNMENT -->
+
+                        <tr>
+                            <td>STORE A</td>
+                            <td>A =</td>
+                            <td>Store value</td>
+                        </tr>
+
+                        <tr>
+                            <td>MOV A B</td>
+                            <td>A = B</td>
+                            <td>Assign</td>
+                        </tr>
+
+                        <tr>
+                            <td>LOAD A / STORE B</td>
+                            <td>B = A</td>
+                            <td>Copy</td>
+                        </tr>
+
+                        <!-- COMPARISON -->
+
+                        <tr>
+                            <td>EQ</td>
+                            <td>==</td>
+                            <td>Equal</td>
+                        </tr>
+
+                        <tr>
+                            <td>NE</td>
+                            <td>!=</td>
+                            <td>Not equal</td>
+                        </tr>
+
+                        <tr>
+                            <td>GT</td>
+                            <td>&gt;</td>
+                            <td>Greater than</td>
+                        </tr>
+
+                        <tr>
+                            <td>LT</td>
+                            <td>&lt;</td>
+                            <td>Less than</td>
+                        </tr>
+
+                        <tr>
+                            <td>GE</td>
+                            <td>&gt;=</td>
+                            <td>Greater/equal</td>
+                        </tr>
+
+                        <tr>
+                            <td>LE</td>
+                            <td>&lt;=</td>
+                            <td>Less/equal</td>
+                        </tr>
+
+                        <tr>
+                            <td>CMP A B</td>
+                            <td>A ? B</td>
+                            <td>Compare</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

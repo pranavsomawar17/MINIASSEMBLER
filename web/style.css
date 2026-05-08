@@ -1,0 +1,515 @@
+/* web/style.css */
+
+:root {
+
+    --bg: #1b1d21;
+
+    --panel: #23262b;
+
+    --panel2: #2d3138;
+
+    --border: #ffffff;
+
+    --text: #e8e8e8;
+
+    --editor: #17191d;
+
+    --button: #343841;
+
+    --hover: #4a505c;
+}
+
+* {
+
+    margin: 0;
+
+    padding: 0;
+
+    box-sizing: border-box;
+}
+
+body {
+
+    background:
+        linear-gradient(
+            135deg,
+            #181a1f,
+            #20242a
+        );
+
+    color: var(--text);
+
+    font-family: "JetBrains Mono", monospace;
+
+    height: 100vh;
+
+    overflow: hidden;
+}
+
+/* ========================================= */
+/* APP */
+/* ========================================= */
+
+.app {
+
+    height: 100vh;
+
+    padding: 12px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+/* ========================================= */
+/* TOOLBAR */
+/* ========================================= */
+
+.toolbar {
+
+    height: 70px;
+
+    background: var(--panel);
+
+    border: 2px solid var(--border);
+
+    border-radius: 16px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 0 20px;
+}
+
+button {
+
+    background: var(--button);
+
+    border: 1px solid white;
+
+    color: white;
+
+    padding: 12px 18px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+button:hover {
+
+    background: var(--hover);
+}
+
+/* ========================================= */
+/* MAIN */
+/* ========================================= */
+
+.main-layout {
+
+    flex: 1;
+
+    display: grid;
+
+    grid-template-columns: 1.4fr 1.3fr 0.8fr;
+
+    gap: 12px;
+
+    overflow: hidden;
+}
+
+/* ========================================= */
+/* PANEL */
+/* ========================================= */
+
+.panel {
+
+    background: var(--panel);
+
+    border: 2px solid white;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+.panel-title {
+
+    padding: 14px;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.1);
+}
+
+/* ========================================= */
+/* EDITOR */
+/* ========================================= */
+
+.editor-wrapper {
+
+    display: flex;
+
+    flex: 1;
+
+    overflow: hidden;
+}
+
+#lineNumbers {
+
+    width: 60px;
+
+    background: var(--panel2);
+
+    color: #9ca3af;
+
+    padding: 16px 10px;
+
+    text-align: right;
+
+    line-height: 1.8;
+
+    border-right:
+        1px solid rgba(255,255,255,0.1);
+}
+
+textarea {
+
+    flex: 1;
+
+    background: var(--editor);
+
+    color: white;
+
+    border: none;
+
+    outline: none;
+
+    resize: none;
+
+    padding: 16px;
+
+    font-size: 15px;
+
+    line-height: 1.8;
+
+    font-family: "JetBrains Mono", monospace;
+}
+
+/* ========================================= */
+/* CENTER */
+/* ========================================= */
+
+.center-layout {
+
+    display: grid;
+
+    grid-template-rows: 380px 1fr;
+
+    gap: 12px;
+
+    overflow: hidden;
+}
+
+.top-info {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+}
+
+/* ========================================= */
+/* TABLE */
+/* ========================================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+th {
+
+    background: var(--panel2);
+
+    padding: 12px;
+
+    text-align: left;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.15);
+}
+
+td {
+
+    padding: 10px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.08);
+
+    font-size: 14px;
+}
+
+tr:hover {
+
+    background:
+        rgba(255,255,255,0.03);
+}
+
+/* ========================================= */
+/* TRANSLATION */
+/* ========================================= */
+
+.translation-panel {
+
+    overflow-y: auto;
+}
+
+/* ========================================= */
+/* TABS */
+/* ========================================= */
+
+.tabs {
+
+    display: flex;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.1);
+}
+
+.tabs button {
+
+    border: none;
+
+    border-radius: 0;
+
+    background: transparent;
+}
+
+.tabs button:hover {
+
+    background:
+        rgba(255,255,255,0.05);
+}
+
+/* ========================================= */
+/* TAB CONTENT */
+/* ========================================= */
+
+.tab-content {
+
+    flex: 1;
+
+    overflow: auto;
+
+    padding: 14px;
+}
+
+.tab-panel {
+
+    white-space: pre-wrap;
+
+    line-height: 1.7;
+}
+
+.hidden {
+
+    display: none;
+}
+
+/* ========================================= */
+/* SCROLLBAR */
+/* ========================================= */
+
+::-webkit-scrollbar {
+
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+
+    background: #1b1d21;
+}
+
+::-webkit-scrollbar-thumb {
+
+    background: #5b616b;
+
+    border-radius: 10px;
+}
+/* ========================================= */
+/* TABLE SCROLL */
+/* ========================================= */
+
+.panel table {
+
+    display: block;
+
+    overflow-y: auto;
+
+    max-height: 100%;
+}
+
+.panel tbody {
+
+    display: table-row-group;
+
+    width: 100%;
+}
+
+.translation-panel {
+
+    overflow-y: auto;
+}
+
+.translation-panel table {
+
+    min-width: 100%;
+}
+
+/* MEMORY + SYMBOL TABLES */
+
+#memoryTable,
+#symbolTable {
+
+    height: 100%;
+}
+
+/* FIX TABLE HEADER */
+
+thead {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 10;
+}
+/* ========================================= */
+/* BOTTOM LAYOUT */
+/* ========================================= */
+
+.bottom-layout {
+
+    flex: 1;
+
+    display: grid;
+
+    grid-template-columns: 1.2fr 0.9fr;
+
+    overflow: hidden;
+}
+
+/* ========================================= */
+/* LEFT TABS */
+/* ========================================= */
+
+.left-tabs {
+
+    border-right:
+        1px solid rgba(255,255,255,0.1);
+
+    overflow: hidden;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+/* ========================================= */
+/* CODEGEN PANEL */
+/* ========================================= */
+
+.codegen-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+/* ========================================= */
+/* RADIO TOOLBAR */
+/* ========================================= */
+
+.radio-toolbar {
+
+    padding: 14px;
+
+    display: flex;
+
+    gap: 20px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.1);
+
+    background:
+        rgba(255,255,255,0.03);
+}
+
+.radio-toolbar label {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+.radio-toolbar input {
+
+    accent-color: white;
+}
+
+/* ========================================= */
+/* CODE VIEW */
+/* ========================================= */
+
+.code-view {
+
+    flex: 1;
+
+    overflow: auto;
+
+    padding: 14px;
+}
+
+.code-view pre {
+
+    white-space: pre-wrap;
+
+    line-height: 1.8;
+
+    color: #dcdcdc;
+}
+
+/* ========================================= */
+/* HIDDEN */
+/* ========================================= */
+
+.hidden {
+
+    display: none;
+}
