@@ -1,23 +1,29 @@
-/* web/style.css */
+/* ========================================= */
+/* ROOT */
+/* ========================================= */
 
 :root {
 
-    --bg: #1b1d21;
+    --bg: #181a1f;
 
     --panel: #23262b;
 
     --panel2: #2d3138;
 
-    --border: #ffffff;
+    --border: rgba(255,255,255,0.15);
 
     --text: #e8e8e8;
 
-    --editor: #17191d;
+    --accent: #ffffff;
 
-    --button: #343841;
+    --hover: #3b4049;
 
-    --hover: #4a505c;
+    --active: #111111;
 }
+
+/* ========================================= */
+/* GLOBAL */
+/* ========================================= */
 
 * {
 
@@ -28,22 +34,23 @@
     box-sizing: border-box;
 }
 
+html,
 body {
 
-    background:
-        linear-gradient(
-            135deg,
-            #181a1f,
-            #20242a
-        );
+    width: 100%;
+
+    height: 100%;
+
+    overflow: hidden;
+}
+
+body {
+
+    background: var(--bg);
 
     color: var(--text);
 
-    font-family: "JetBrains Mono", monospace;
-
-    height: 100vh;
-
-    overflow: hidden;
+    font-family: monospace;
 }
 
 /* ========================================= */
@@ -54,13 +61,15 @@ body {
 
     height: 100vh;
 
-    padding: 12px;
-
     display: flex;
 
     flex-direction: column;
 
+    padding: 12px;
+
     gap: 12px;
+
+    overflow: hidden;
 }
 
 /* ========================================= */
@@ -69,11 +78,11 @@ body {
 
 .toolbar {
 
-    height: 70px;
+    height: 64px;
 
     background: var(--panel);
 
-    border: 2px solid var(--border);
+    border: 2px solid white;
 
     border-radius: 16px;
 
@@ -81,26 +90,50 @@ body {
 
     align-items: center;
 
-    gap: 12px;
+    gap: 6px;
 
-    padding: 0 20px;
+    padding: 0 10px;
 }
+
+.toolbar-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.toolbar-right {
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    letter-spacing: 1px;
+}
+
+/* ========================================= */
+/* BUTTONS */
+/* ========================================= */
 
 button {
 
-    background: var(--button);
+    background: #343841;
 
     border: 1px solid white;
 
     color: white;
 
-    padding: 12px 18px;
+    padding: 8px 12px;
 
     border-radius: 10px;
 
     cursor: pointer;
 
     transition: 0.2s;
+
+    min-width: 90px;
 }
 
 button:hover {
@@ -108,8 +141,15 @@ button:hover {
     background: var(--hover);
 }
 
+button:active {
+
+    transform: scale(0.96);
+
+    background: var(--active);
+}
+
 /* ========================================= */
-/* MAIN */
+/* MAIN LAYOUT */
 /* ========================================= */
 
 .main-layout {
@@ -118,11 +158,46 @@ button:hover {
 
     display: grid;
 
-    grid-template-columns: 1.4fr 1.3fr 0.8fr;
+    grid-template-columns: 1.5fr 1.3fr 0.7fr;
 
     gap: 12px;
 
     overflow: hidden;
+
+    min-height: 0;
+}
+
+/* ========================================= */
+/* TRANSLATION TABLE */
+/* ========================================= */
+
+.translation-panel {
+
+    overflow: hidden;
+
+    min-height: 0;
+}
+
+.translation-panel table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+.translation-panel th,
+.translation-panel td {
+
+    border: 1px solid rgba(255,255,255,0.1);
+
+    padding: 10px;
+
+    text-align: left;
+}
+
+.translation-panel tbody tr:hover {
+
+    background: rgba(255,255,255,0.05);
 }
 
 /* ========================================= */
@@ -142,76 +217,78 @@ button:hover {
     display: flex;
 
     flex-direction: column;
+
+    min-height: 0;
 }
 
 .panel-title {
 
     padding: 14px;
 
-    font-size: 16px;
-
     font-weight: bold;
 
-    border-bottom:
-        1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--border);
+
+    background: rgba(255,255,255,0.02);
+
+    flex-shrink: 0;
 }
 
 /* ========================================= */
-/* EDITOR */
+/* EDITOR PANEL */
 /* ========================================= */
 
-.editor-wrapper {
+.editor-panel {
 
     display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    min-height: 0;
+}
+
+.editor-wrapper {
 
     flex: 1;
 
     overflow: hidden;
-}
 
-#lineNumbers {
+    min-height: 0;
 
-    width: 60px;
-
-    background: var(--panel2);
-
-    color: #9ca3af;
-
-    padding: 16px 10px;
-
-    text-align: right;
-
-    line-height: 1.8;
-
-    border-right:
-        1px solid rgba(255,255,255,0.1);
-}
-
-textarea {
-
-    flex: 1;
-
-    background: var(--editor);
-
-    color: white;
-
-    border: none;
-
-    outline: none;
-
-    resize: none;
-
-    padding: 16px;
-
-    font-size: 15px;
-
-    line-height: 1.8;
-
-    font-family: "JetBrains Mono", monospace;
+    display: flex;
 }
 
 /* ========================================= */
-/* CENTER */
+/* MONACO EDITOR */
+/* ========================================= */
+
+#editor {
+
+    width: 100%;
+
+    height: 100%;
+
+    min-height: 700px;
+
+    overflow: hidden;
+}
+
+.monaco-editor {
+
+    padding-top: 10px;
+}
+
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .inputarea {
+
+    background: #1e1e1e !important;
+}
+
+/* ========================================= */
+/* CENTER LAYOUT */
 /* ========================================= */
 
 .center-layout {
@@ -223,20 +300,39 @@ textarea {
     gap: 12px;
 
     overflow: hidden;
+
+    min-height: 0;
 }
+
+/* ========================================= */
+/* TOP INFO */
+/* ========================================= */
 
 .top-info {
 
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
 
     gap: 12px;
+
+    overflow: hidden;
+
+    min-height: 0;
 }
 
 /* ========================================= */
-/* TABLE */
+/* TABLES */
 /* ========================================= */
+
+.table-container {
+
+    flex: 1;
+
+    overflow: auto;
+
+    min-height: 0;
+}
 
 table {
 
@@ -245,156 +341,21 @@ table {
     border-collapse: collapse;
 }
 
-th {
-
-    background: var(--panel2);
-
-    padding: 12px;
-
-    text-align: left;
-
-    border-bottom:
-        1px solid rgba(255,255,255,0.15);
-}
-
+th,
 td {
 
     padding: 10px;
 
-    border-bottom:
-        1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
 
-    font-size: 14px;
+    text-align: left;
+
+    font-size: 13px;
 }
 
-tr:hover {
+th {
 
-    background:
-        rgba(255,255,255,0.03);
-}
-
-/* ========================================= */
-/* TRANSLATION */
-/* ========================================= */
-
-.translation-panel {
-
-    overflow-y: auto;
-}
-
-/* ========================================= */
-/* TABS */
-/* ========================================= */
-
-.tabs {
-
-    display: flex;
-
-    border-bottom:
-        1px solid rgba(255,255,255,0.1);
-}
-
-.tabs button {
-
-    border: none;
-
-    border-radius: 0;
-
-    background: transparent;
-}
-
-.tabs button:hover {
-
-    background:
-        rgba(255,255,255,0.05);
-}
-
-/* ========================================= */
-/* TAB CONTENT */
-/* ========================================= */
-
-.tab-content {
-
-    flex: 1;
-
-    overflow: auto;
-
-    padding: 14px;
-}
-
-.tab-panel {
-
-    white-space: pre-wrap;
-
-    line-height: 1.7;
-}
-
-.hidden {
-
-    display: none;
-}
-
-/* ========================================= */
-/* SCROLLBAR */
-/* ========================================= */
-
-::-webkit-scrollbar {
-
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-
-    background: #1b1d21;
-}
-
-::-webkit-scrollbar-thumb {
-
-    background: #5b616b;
-
-    border-radius: 10px;
-}
-/* ========================================= */
-/* TABLE SCROLL */
-/* ========================================= */
-
-.panel table {
-
-    display: block;
-
-    overflow-y: auto;
-
-    max-height: 100%;
-}
-
-.panel tbody {
-
-    display: table-row-group;
-
-    width: 100%;
-}
-
-.translation-panel {
-
-    overflow-y: auto;
-}
-
-.translation-panel table {
-
-    min-width: 100%;
-}
-
-/* MEMORY + SYMBOL TABLES */
-
-#memoryTable,
-#symbolTable {
-
-    height: 100%;
-}
-
-/* FIX TABLE HEADER */
-
-thead {
+    background: var(--panel2);
 
     position: sticky;
 
@@ -402,6 +363,12 @@ thead {
 
     z-index: 10;
 }
+
+tbody tr:hover {
+
+    background: rgba(255,255,255,0.03);
+}
+
 /* ========================================= */
 /* BOTTOM LAYOUT */
 /* ========================================= */
@@ -412,25 +379,113 @@ thead {
 
     display: grid;
 
-    grid-template-columns: 1.2fr 0.9fr;
+    grid-template-columns: 1.2fr 1fr;
 
     overflow: hidden;
-}
 
-/* ========================================= */
-/* LEFT TABS */
-/* ========================================= */
+    min-height: 0;
+}
 
 .left-tabs {
 
-    border-right:
-        1px solid rgba(255,255,255,0.1);
+    border-right: 1px solid var(--border);
 
     overflow: hidden;
 
+    min-height: 0;
+
+}
+
+/* ========================================= */
+/* DEBUG PANEL */
+/* ========================================= */
+
+.debug-line {
+
+    padding: 6px 10px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+
+    white-space: pre-wrap;
+
+    font-size: 14px;
+}
+
+/* ========================================= */
+/* TABS */
+/* ========================================= */
+
+.tabs {
+
     display: flex;
 
-    flex-direction: column;
+    border-bottom: 1px solid var(--border);
+
+    flex-shrink: 0;
+}
+
+.tabs button {
+
+    border-radius: 0;
+
+    border: none;
+
+    border-right: 1px solid var(--border);
+
+    background: transparent;
+
+    padding: 14px 18px;
+}
+
+.tabs button:hover {
+
+    background: rgba(255,255,255,0.05);
+}
+
+.active-tab {
+
+    background: #111 !important;
+
+    border-bottom: 2px solid white !important;
+
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.12);
+}
+
+/* ========================================= */
+/* AST TREE */
+/* ========================================= */
+
+.ast-node {
+
+    padding: 4px 10px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+
+    white-space: pre-wrap;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+/* ========================================= */
+/* TAB CONTENT */
+/* ========================================= */
+
+.tab-content {
+
+    height: 100%;
+
+    overflow: auto;
+
+    padding: 14px;
+}
+
+.tab-panel {
+
+    width: 100%;
+
+    height: 100%;
 }
 
 /* ========================================= */
@@ -444,48 +499,22 @@ thead {
     flex-direction: column;
 
     overflow: hidden;
-}
 
-/* ========================================= */
-/* RADIO TOOLBAR */
-/* ========================================= */
+    min-height: 0;
+}
 
 .radio-toolbar {
 
-    padding: 14px;
+    padding: 12px;
 
     display: flex;
 
     gap: 20px;
 
-    border-bottom:
-        1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--border);
 
-    background:
-        rgba(255,255,255,0.03);
+    flex-shrink: 0;
 }
-
-.radio-toolbar label {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    font-size: 14px;
-
-    cursor: pointer;
-}
-
-.radio-toolbar input {
-
-    accent-color: white;
-}
-
-/* ========================================= */
-/* CODE VIEW */
-/* ========================================= */
 
 .code-view {
 
@@ -493,16 +522,60 @@ thead {
 
     overflow: auto;
 
-    padding: 14px;
+    padding: 12px;
+
+    min-height: 0;
 }
 
-.code-view pre {
+/* ========================================= */
+/* TRANSLATION PANEL */
+/* ========================================= */
+
+.translation-panel {
+
+    height: 100%;
+
+    overflow: hidden;
+
+    min-height: 0;
+}
+
+.translation-panel .table-container {
+
+    flex: 1;
+
+    overflow-y: auto;
+}
+
+#opcodeTable {
+
+    width: 100%;
+}
+
+/* ========================================= */
+/* PRE */
+/* ========================================= */
+
+pre {
 
     white-space: pre-wrap;
 
-    line-height: 1.8;
+    word-wrap: break-word;
 
-    color: #dcdcdc;
+    line-height: 1.7;
+
+    font-size: 13px;
+}
+
+/* ========================================= */
+/* CURRENT LINE */
+/* ========================================= */
+
+.currentLine {
+
+    background: rgba(255,255,255,0.08);
+
+    border-left: 4px solid white;
 }
 
 /* ========================================= */
@@ -512,4 +585,83 @@ thead {
 .hidden {
 
     display: none;
+}
+
+/* ========================================= */
+/* SCROLLBAR */
+/* ========================================= */
+
+::-webkit-scrollbar {
+
+    width: 8px;
+
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+
+    background: #1b1d21;
+}
+
+::-webkit-scrollbar-thumb {
+
+    background: #555;
+
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+    background: #777;
+}
+
+/* ========================================= */
+/* OUTPUT COLORS */
+/* ========================================= */
+
+#output {
+
+    color: #7dff7d;
+}
+
+#errors {
+
+    color: #ff7d7d;
+}
+
+#debug {
+
+    color: #7dc7ff;
+}
+
+#optimization {
+
+    color: #ffe27d;
+}
+
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+
+@media (max-width: 1400px) {
+
+    .main-layout {
+
+        grid-template-columns: 1fr;
+    }
+
+    .center-layout {
+
+        grid-template-rows: auto auto;
+    }
+
+    .top-info {
+
+        grid-template-columns: 1fr;
+    }
+
+    .bottom-layout {
+
+        grid-template-columns: 1fr;
+    }
 }
