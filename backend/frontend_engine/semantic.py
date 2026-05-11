@@ -1,157 +1,376 @@
+from utils.diagnostics import Diagnostic
+
+
 class SemanticAnalyzer:
 
     def __init__(self):
 
-        self.variables = {}
+        self.variables = set()
 
         self.labels = set()
 
         self.errors = []
 
-        self.address_counter = 100
+    # =====================================
+    # RESET
+    # =====================================
 
+    def reset(self):
 
-    # =========================================
+        self.variables.clear()
+
+        self.labels.clear()
+
+        self.errors.clear()
+
+    # =====================================
+    # ERROR
+    # =====================================
+
+    def add_error(
+
+        self,
+
+        line,
+
+        message,
+
+        suggestion=""
+    ):
+
+        self.errors.append(
+
+            Diagnostic(
+
+                severity="ERROR",
+
+                line=line,
+
+                message=message,
+
+                suggestion=suggestion
+            ).to_dict()
+        )
+
+    # =====================================
     # DECLARE VARIABLE
-    # =========================================
+    # =====================================
 
-    def declare_variable(self, name):
+    def declare_variable(
 
-        if name not in self.variables:
+        self,
 
-            self.variables[name] = {
+        variable,
 
-                "address": self.address_counter
-            }
+        line
+    ):
 
-            self.address_counter += 1
+        if variable in self.variables:
 
+            self.add_error(
 
-    # =========================================
+                line,
+
+                f"Variable '{variable}' already declared",
+
+                "Use another variable name"
+            )
+
+        else:
+
+            self.variables.add(variable)
+
+    # =====================================
+    # CHECK VARIABLE
+    # =====================================
+
+    def check_variable(
+
+        self,
+
+        variable,
+
+        line
+    ):
+
+        if variable not in self.variables:
+
+            self.add_error(
+
+                line,
+
+                f"Variable '{variable}' not declared",
+
+                f"Declare '{variable}' before use"
+            )
+
+    # =====================================
     # ANALYZE
-    # =========================================
+    # =====================================
 
     def analyze(self, ast):
 
-        # -------------------------------------
-        # PASS 1 → LABELS
-        # -------------------------------------
+        self.reset()
 
-        for node in ast:
+        # =================================
+        # FIRST PASS
+        # =================================
 
-            if hasattr(node, "label"):
+        for index, node in enumerate(ast):
 
-                self.labels.add(node.label)
+            line_no = index + 1
 
-        # -------------------------------------
-        # PASS 2 → VARIABLES
-        # -------------------------------------
+            node_name = node.__class__.__name__
 
-        for node in ast:
+            # =============================
+            # VARIABLE
+            # =============================
 
-            node_type = type(node).__name__
-
-            # ---------------------------------
-            # VARIABLE DECLARATION
-            # ---------------------------------
-
-            if node_type == "VariableNode":
+            if node_name == "VariableNode":
 
                 self.declare_variable(
-                    node.name
+
+                    node.name,
+
+                    line_no
                 )
 
-            # ---------------------------------
-            # ASSIGNMENT
-            # ---------------------------------
+            # =============================
+            # CONSTANT
+            # =============================
 
-            elif node_type == "AssignmentNode":
-
-                # auto declare left side
+            elif node_name == "ConstantNode":
 
                 self.declare_variable(
-                    node.target
+
+                    node.name,
+
+                    line_no
                 )
 
-                # check operands
+            # =============================
+            # LABEL
+            # =============================
 
-                for operand in [
+            elif node_name == "LabelNode":
+
+                if node.name in self.labels:
+
+                    self.add_error(
+
+                        line_no,
+
+                        f"Duplicate label '{node.name}'",
+
+                        "Rename label"
+                    )
+
+                else:
+
+                    self.labels.add(node.name)
+
+        # =================================
+        # SECOND PASS
+        # =================================
+
+        for index, node in enumerate(ast):
+
+            line_no = index + 1
+
+            node_name = node.__class__.__name__
+
+            # =============================
+            # MOV
+            # =============================
+
+            if node_name == "MovNode":
+
+                self.check_variable(
+
+                    node.variable,
+
+                    line_no
+                )
+
+            # =============================
+            # LOAD
+            # =============================
+
+            elif node_name == "LoadNode":
+
+                self.check_variable(
+
+                    node.variable,
+
+                    line_no
+                )
+
+            # =============================
+            # STORE
+            # =============================
+
+            elif node_name == "StoreNode":
+
+                self.check_variable(
+
+                    node.variable,
+
+                    line_no
+                )
+
+            # =============================
+            # ADD
+            # =============================
+
+            elif node_name == "AddNode":
+
+                self.check_variable(
 
                     node.left,
 
-                    node.right
-                ]:
+                    line_no
+                )
 
-                    if operand is None:
-                        continue
+                self.check_variable(
 
-                    if operand.isdigit():
-                        continue
+                    node.right,
 
-                    if operand not in self.variables:
+                    line_no
+                )
 
-                        self.errors.append(
+            # =============================
+            # SUB
+            # =============================
 
-                            f"Undefined variable '{operand}'"
-                        )
+            elif node_name == "SubNode":
 
-            # ---------------------------------
-            # SHOW
-            # ---------------------------------
+                self.check_variable(
 
-            elif node_type == "ShowNode":
+                    node.left,
 
-                variable = node.variable
+                    line_no
+                )
 
-                if variable not in self.variables:
+                self.check_variable(
 
-                    self.errors.append(
+                    node.right,
 
-                        f"Undefined variable '{variable}'"
-                    )
+                    line_no
+                )
 
-            # ---------------------------------
-            # IF
-            # ---------------------------------
+            # =============================
+            # MUL
+            # =============================
 
-            elif node_type == "IfNode":
+            elif node_name == "MulNode":
 
-                if node.left not in self.variables:
+                self.check_variable(
 
-                    self.errors.append(
+                    node.left,
 
-                        f"Undefined variable '{node.left}'"
-                    )
+                    line_no
+                )
 
-                if not node.right.isdigit():
+                self.check_variable(
 
-                    if node.right not in self.variables:
+                    node.right,
 
-                        self.errors.append(
+                    line_no
+                )
 
-                            f"Undefined variable '{node.right}'"
-                        )
+            # =============================
+            # DIV
+            # =============================
+
+            elif node_name == "DivNode":
+
+                self.check_variable(
+
+                    node.left,
+
+                    line_no
+                )
+
+                self.check_variable(
+
+                    node.right,
+
+                    line_no
+                )
+
+            # =============================
+            # PRINT
+            # =============================
+
+            elif node_name == "PrintNode":
+
+                self.check_variable(
+
+                    node.variable,
+
+                    line_no
+                )
+
+            # =============================
+            # READ
+            # =============================
+
+            elif node_name == "ReadNode":
+
+                self.check_variable(
+
+                    node.variable,
+
+                    line_no
+                )
+
+            # =============================
+            # CMP
+            # =============================
+
+            elif node_name == "CompareNode":
+
+                self.check_variable(
+
+                    node.left,
+
+                    line_no
+                )
+
+                self.check_variable(
+
+                    node.right,
+
+                    line_no
+                )
+
+            # =============================
+            # JUMP
+            # =============================
+
+            elif node_name == "JumpNode":
 
                 if node.label not in self.labels:
 
-                    self.errors.append(
+                    self.add_error(
 
-                        f"Undefined label '{node.label}'"
+                        line_no,
+
+                        f"Undefined label '{node.label}'",
+
+                        "Create label before jump"
                     )
+
+        # =================================
+        # RETURN
+        # =================================
 
         return {
 
             "errors": self.errors,
 
-            "symbols": [
+            "symbols": sorted(
 
-                {
-
-                    "symbol": name,
-
-                    "address": info["address"]
-                }
-
-                for name, info in self.variables.items()
-            ]
+                list(self.variables)
+            )
         }

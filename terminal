@@ -1,0 +1,3 @@
+source ~/venvs/python/bin/activate
+
+QT_QPA_PLATFORM=wayland PYTHONPATH=. python3 main.pysource ~/venvs/python/bin/activate

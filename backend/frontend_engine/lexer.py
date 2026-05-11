@@ -1,28 +1,32 @@
-from utils.tables import (
-    KEYWORDS,
-    OPERATORS
-)
+# backend/frontend_engine/lexer.py
+
+from frontend_engine.tokenizer import Tokenizer
 
 
 class Lexer:
 
-    def validate(self, tokens):
+    def __init__(self, source):
 
-        if not tokens:
-            return None
+        self.source = source
 
-        first = tokens[0]
+        self.tokenizer = Tokenizer()
 
-        # Keywords
-        if first in KEYWORDS:
-            return None
+    def tokenize(self):
 
-        # Label
-        if len(tokens) >= 2 and tokens[1] == ":":
-            return None
+        tokens = []
 
-        # Assignment
-        if "=" in tokens:
-            return None
+        lines = self.source.splitlines()
 
-        return None
+        for line in lines:
+
+            line_tokens = self.tokenizer.tokenize(line)
+
+            if not line_tokens:
+
+                continue
+
+            tokens.extend(line_tokens)
+
+            tokens.append("NEWLINE")
+
+        return tokens

@@ -1,46 +1,51 @@
-import re
-
+# backend/frontend_engine/tokenizer.py
 
 class Tokenizer:
 
     def tokenize(self, line):
 
-        # -----------------------------------------
-        # Clean line
-        # -----------------------------------------
-        line = line.strip()
+        # =====================================
+        # REMOVE COMMENTS
+        # =====================================
 
-        # -----------------------------------------
-        # Remove comments
-        # -----------------------------------------
-        if "#" in line:
+        if ";" in line:
 
-            line = line.split("#")[0]
+            line = line.split(";")[0]
 
-        # -----------------------------------------
-        # Token regex
-        # -----------------------------------------
-        pattern = r'''
+        line = str(line).strip()
 
-        [A-Za-z_][A-Za-z0-9_]*
+        if not line:
 
-        |==|!=|>=|<=
+            return []
 
-        |[+\-*/%=<>?]
+        # =====================================
+        # CLEAN SYMBOLS
+        # =====================================
 
-        |\d+
+        replacements = {
 
-        |:
+            ",": " ",
 
-        '''
+            "=": " = ",
 
-        # -----------------------------------------
-        # Extract tokens
-        # -----------------------------------------
-        tokens = re.findall(
-            pattern,
-            line,
-            re.VERBOSE
-        )
+            "\t": " "
+        }
+
+        for old, new in replacements.items():
+
+            line = line.replace(old, new)
+
+        # =====================================
+        # TOKENIZE
+        # =====================================
+
+        tokens = [
+
+            token.strip()
+
+            for token in line.split()
+
+            if token.strip()
+        ]
 
         return tokens

@@ -1,33 +1,101 @@
-from flask import Flask, request, jsonify
+from flask import Flask
+from flask import jsonify
+from flask import request
+
 from flask_cors import CORS
 
 from frontend_engine.parser import Parser
 from frontend_engine.semantic import SemanticAnalyzer
 
-from core.interpreter import Interpreter
-from core.codegen import CodeGenerator
+from core.assembler import Assembler
+from core.executor import Executor
+from core.debugger import Debugger
+
+import traceback
 
 app = Flask(__name__)
 
 CORS(app)
 
+assembler = Assembler()
+executor = Executor()
+debugger = Debugger()
 
-# =====================================================
-# ROOT
-# =====================================================
+# =========================================
+# COMPILE
+# =========================================
 
-@app.route("/")
+def compile_source(source):
 
-def home():
+    parser = Parser()
 
-    return "MiniASM Backend Running"
+    semantic = SemanticAnalyzer()
 
+    ast = []
 
-# =====================================================
+    raw_lines = source.splitlines()
+
+    for raw in raw_lines:
+
+        line = str(raw).strip()
+
+        if not line:
+
+            continue
+
+        if line.startswith(";"):
+
+            continue
+
+        tokens = line.split()
+
+        node = parser.parse(tokens)
+
+        if node is not None:
+
+            if isinstance(node, list):
+
+                ast.extend(node)
+
+            else:
+
+                ast.append(node)
+
+    semantic_errors = semantic.analyze(ast)
+
+    if semantic_errors is None:
+
+        semantic_errors = []
+
+    assembled = assembler.assemble(ast)
+
+    return {
+
+        "ast": assembled["ast"],
+
+        "intermediate": assembled["intermediate"],
+
+        "machine": assembled["machine"],
+
+        "symbols": assembled["symbols"],
+
+        "optimization": assembled["optimization"],
+
+        "vm": assembled["vm"],
+
+        "errors": semantic_errors
+    }
+
+# =========================================
 # ASSEMBLE
-# =====================================================
+# =========================================
 
-@app.route("/assemble", methods=["POST"])
+@app.route(
+
+    "/assemble",
+
+    methods=["POST"]
+)
 
 def assemble():
 
@@ -35,128 +103,63 @@ def assemble():
 
         data = request.json
 
-        code = data.get("code", "")
+        source = data.get(
 
-        lines = code.split("\n")
+            "code",
 
-        parser = Parser()
+            ""
+        )
 
-        ast = []
-
-        # =========================================
-        # PARSE
-        # =========================================
-
-        for line in lines:
-
-            line = line.strip()
-
-            if not line:
-                continue
-
-            node = parser.parse(line)
-
-            if node:
-
-                ast.append(node)
-
-        # =========================================
-        # SEMANTIC
-        # =========================================
-
-        semantic = SemanticAnalyzer()
-
-        semantic_result = semantic.analyze(ast)
-
-        # =========================================
-        # CODE GENERATION
-        # =========================================
-
-        generator = CodeGenerator()
-
-        generated = generator.generate(ast)
-
-        # =========================================
-        # OPTIMIZATION
-        # =========================================
-
-        optimization = []
-
-        for index, line in enumerate(lines):
-
-            if "+ 0" in line:
-
-                optimization.append(
-
-                    f"Line {index+1}: "
-                    f"Remove '+ 0'"
-                )
-
-            if "* 1" in line:
-
-                optimization.append(
-
-                    f"Line {index+1}: "
-                    f"Remove '* 1'"
-                )
+        compiled = compile_source(source)
 
         return jsonify({
 
             "success": True,
 
-            # AST
-            "ast": [
+            "ast": compiled["ast"],
 
-                str(node)
+            "intermediate": compiled["intermediate"],
 
-                for node in ast
-            ],
+            "machine": compiled["machine"],
 
-            # SYMBOL TABLE
-            "symbols": semantic_result["symbols"],
+            "symbols": compiled["symbols"],
 
-            # ERRORS
-            "errors": semantic_result["errors"],
+            "optimization": compiled["optimization"],
 
-            # OPTIMIZATION
-            "optimization": optimization,
-
-            # INTERMEDIATE CODE
-            "intermediate":
-
-                generated["intermediate"],
-
-            # MACHINE CODE
-            "machine":
-
-                generated["machine"]
+            "errors": compiled["errors"]
         })
 
-    except Exception as e:
+    except Exception as error:
+
+        traceback.print_exc()
 
         return jsonify({
 
             "success": False,
 
-            "errors": [str(e)],
+            "errors": [
 
-            "ast": [],
+                {
 
-            "symbols": [],
+                    "severity": "RUNTIME",
 
-            "optimization": [],
+                    "line": 0,
 
-            "intermediate": [],
-
-            "machine": []
+                    "message": str(error)
+                }
+            ]
         })
 
-
-# =====================================================
+# =========================================
 # RUN
-# =====================================================
+# =========================================
 
-@app.route("/run", methods=["POST"])
+@app.route(
+
+    "/run",
+
+    methods=["POST"]
+)
 
 def run():
 
@@ -164,97 +167,150 @@ def run():
 
         data = request.json
 
-        code = data.get("code", "")
+        source = data.get(
 
-        lines = code.split("\n")
+            "code",
 
-        parser = Parser()
+            ""
+        )
 
-        ast = []
+        compiled = compile_source(source)
 
-        # =========================================
-        # PARSE
-        # =========================================
+        result = executor.run(
 
-        for line in lines:
-
-            line = line.strip()
-
-            if not line:
-                continue
-
-            node = parser.parse(line)
-
-            if node:
-
-                ast.append(node)
-
-        # =========================================
-        # SEMANTIC
-        # =========================================
-
-        semantic = SemanticAnalyzer()
-
-        semantic_result = semantic.analyze(ast)
-
-        # =========================================
-        # STOP IF ERRORS
-        # =========================================
-
-        if semantic_result["errors"]:
-
-            return jsonify({
-
-                "success": False,
-
-                "errors":
-                    semantic_result["errors"]
-            })
-
-        # =========================================
-        # RUN
-        # =========================================
-
-        interpreter = Interpreter()
-
-        result = interpreter.run(ast)
+            compiled["vm"]
+        )
 
         return jsonify({
 
             "success": True,
 
-            "memory":
-                result["memory"],
+            "output": result["output"],
 
-            "output":
-                result["output"],
+            "memory": result["memory"],
 
-            "debug":
-                result["debug"],
+            "debug": result["debug"],
 
-            "symbol_table":
-                result["symbol_table"]
+            "registers": result["registers"],
+
+            "ast": compiled["ast"],
+
+            "intermediate": compiled["intermediate"],
+
+            "machine": compiled["machine"],
+
+            "symbols": compiled["symbols"],
+
+            "optimization": compiled["optimization"],
+
+            "errors": compiled["errors"]
         })
 
-    except Exception as e:
+    except Exception as error:
+
+        traceback.print_exc()
 
         return jsonify({
 
             "success": False,
 
-            "errors": [str(e)]
+            "errors": [
+
+                {
+
+                    "severity": "RUNTIME",
+
+                    "line": 0,
+
+                    "message": str(error)
+                }
+            ]
         })
 
+# =========================================
+# STEP
+# =========================================
 
-# =====================================================
-# START
-# =====================================================
+@app.route(
+
+    "/step",
+
+    methods=["POST"]
+)
+
+def step():
+
+    try:
+
+        data = request.json
+
+        source = data.get(
+
+            "code",
+
+            ""
+        )
+
+        pc = data.get(
+
+            "pc",
+
+            0
+        )
+
+        compiled = compile_source(source)
+
+        result = debugger.step(
+
+            compiled["vm"],
+
+            pc
+        )
+
+        return jsonify(result)
+
+    except Exception as error:
+
+        traceback.print_exc()
+
+        return jsonify({
+
+            "done": True,
+
+            "debug": str(error)
+        })
+
+# =========================================
+# RESET
+# =========================================
+
+@app.route(
+
+    "/reset",
+
+    methods=["POST"]
+)
+
+def reset():
+
+    executor.reset()
+
+    return jsonify({
+
+        "success": True
+    })
+
+# =========================================
+# MAIN
+# =========================================
 
 if __name__ == "__main__":
 
     app.run(
 
         debug=True,
+
+        host="0.0.0.0",
 
         port=5000
     )

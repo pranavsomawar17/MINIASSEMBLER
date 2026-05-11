@@ -1,352 +1,212 @@
-# backend/core/interpreter.py
+class IntermediateGenerator:
 
-from frontend_engine.ast_nodes import *
+    def generate(self, ast):
 
+        code = []
 
-class Interpreter:
+        for node in ast:
 
-    def __init__(self):
-
-        # =====================================
-        # MEMORY
-        # =====================================
-
-        self.memory = {}
-
-        # =====================================
-        # OUTPUT
-        # =====================================
-
-        self.output = []
-
-        # =====================================
-        # DEBUG TRACE
-        # =====================================
-
-        self.debug = []
-
-        # =====================================
-        # LABEL TABLE
-        # =====================================
-
-        self.labels = {}
-
-    # =========================================
-    # GET VALUE
-    # =========================================
-
-    def get_value(self, token):
-
-        # NUMBER
-
-        if str(token).isdigit():
-
-            return int(token)
-
-        # VARIABLE
-
-        return self.memory.get(token, 0)
-
-    # =========================================
-    # RUN
-    # =========================================
-
-    def run(self, ast):
-
-        # =====================================
-        # BUILD LABEL TABLE
-        # =====================================
-
-        for index, node in enumerate(ast):
-
-            if isinstance(node, LabelNode):
-
-                self.labels[node.name] = index
-
-        # =====================================
-        # PROGRAM COUNTER
-        # =====================================
-
-        pc = 0
-
-        # =====================================
-        # EXECUTION LOOP
-        # =====================================
-
-        while pc < len(ast):
-
-            node = ast[pc]
-
-            # =================================
-            # DEBUG TRACE
-            # =================================
-
-            self.debug.append(
-
-                f"PC {pc} -> {node}"
-            )
+            name = node.__class__.__name__
 
             # =================================
             # BEGIN
             # =================================
 
-            if isinstance(node, BeginNode):
+            if name == "BeginNode":
 
-                pass
-
-            # =================================
-            # DONE
-            # =================================
-
-            elif isinstance(node, DoneNode):
-
-                break
+                code.append("BEGIN")
 
             # =================================
-            # VARIABLE DECLARATION
+            # END
             # =================================
 
-            elif isinstance(node, VariableNode):
+            elif name == "EndNode":
 
-                self.memory[node.name] = 0
-
-            # =================================
-            # ASK INPUT
-            # =================================
-
-            elif isinstance(node, AskNode):
-
-                # DEMO INPUT VALUE
-
-                self.memory[node.variable] = 0
+                code.append("END")
 
             # =================================
-            # SHOW OUTPUT
+            # HALT
             # =================================
 
-            elif isinstance(node, ShowNode):
+            elif name == "HaltNode":
 
-                value = self.memory.get(
+                code.append("HALT")
 
-                    node.variable,
+            # =================================
+            # VARIABLE
+            # =================================
 
-                    0
-                )
+            elif name == "VariableNode":
 
-                self.output.append(
+                code.append(
 
-                    f"{node.variable} = {value}"
+                    f"DECLARE {node.name}"
                 )
 
             # =================================
-            # ASSIGNMENT
+            # CONSTANT
             # =================================
 
-            elif isinstance(node, AssignmentNode):
+            elif name == "ConstantNode":
 
-                left = self.get_value(
-                    node.left
+                code.append(
+
+                    f"CONST {node.name} {node.value}"
                 )
 
-                result = left
+            # =================================
+            # COPY
+            # =================================
 
-                # =============================
-                # EXPRESSION
-                # =============================
+            elif name == "MovNode":
 
-                if node.operator:
+                code.append(
 
-                    right = self.get_value(
-                        node.right
+                    f"SET {node.variable} {node.value}"
+                )
+
+            # =================================
+            # LOAD
+            # =================================
+
+            elif name == "LoadNode":
+
+                code.append(
+
+                    f"LOAD {node.variable}"
+                )
+
+            # =================================
+            # SAVE
+            # =================================
+
+            elif name == "StoreNode":
+
+                code.append(
+
+                    f"SAVE {node.variable}"
+                )
+
+            # =================================
+            # PLUS
+            # =================================
+
+            elif name == "AddNode":
+
+                code.append(
+
+                    f"ADD {node.left} {node.right}"
+                )
+
+            # =================================
+            # MINUS
+            # =================================
+
+            elif name == "SubNode":
+
+                code.append(
+
+                    f"SUB {node.left} {node.right}"
+                )
+
+            # =================================
+            # MULTIPLY
+            # =================================
+
+            elif name == "MulNode":
+
+                code.append(
+
+                    f"MUL {node.left} {node.right}"
+                )
+
+            # =================================
+            # DIVIDE
+            # =================================
+
+            elif name == "DivNode":
+
+                code.append(
+
+                    f"DIV {node.left} {node.right}"
+                )
+
+            # =================================
+            # SHOW
+            # =================================
+
+            elif name == "PrintNode":
+
+                code.append(
+
+                    f"SHOW {node.variable}"
+                )
+
+            # =================================
+            # READ
+            # =================================
+
+            elif name == "ReadNode":
+
+                code.append(
+
+                    f"READ {node.variable}"
+                )
+
+            # =================================
+            # CMP
+            # =================================
+
+            elif name == "CompareNode":
+
+                code.append(
+
+                    f"CMP {node.left} {node.right}"
+                )
+
+            # =================================
+            # JUMP
+            # =================================
+
+            elif name == "JumpNode":
+
+                if node.condition == "LT":
+
+                    code.append(
+
+                        f"JL {node.label}"
                     )
 
-                    # ADD
+                elif node.condition == "GT":
 
-                    if node.operator == "+":
+                    code.append(
 
-                        result = left + right
-
-                    # SUB
-
-                    elif node.operator == "-":
-
-                        result = left - right
-
-                    # MUL
-
-                    elif node.operator == "*":
-
-                        result = left * right
-
-                    # DIV
-
-                    elif node.operator == "/":
-
-                        result = left // right
-
-                    # MOD
-
-                    elif node.operator == "%":
-
-                        result = left % right
-
-                # STORE RESULT
-
-                self.memory[node.target] = result
-
-            # =================================
-            # COMPARE VISUALIZATION
-            # =================================
-
-            elif isinstance(node, CompareNode):
-
-                left = self.get_value(
-                    node.left
-                )
-
-                right = self.get_value(
-                    node.right
-                )
-
-                if left > right:
-
-                    self.output.append(
-
-                        f"{node.left} > {node.right}"
+                        f"JG {node.label}"
                     )
 
-                elif left < right:
+                elif node.condition == "EQ":
 
-                    self.output.append(
+                    code.append(
 
-                        f"{node.left} < {node.right}"
+                        f"JE {node.label}"
                     )
 
                 else:
 
-                    self.output.append(
+                    code.append(
 
-                        f"{node.left} == {node.right}"
+                        f"JMP {node.label}"
                     )
-
-            # =================================
-            # IF CONDITION
-            # =================================
-
-            elif isinstance(node, IfNode):
-
-                left = self.get_value(
-                    node.left
-                )
-
-                right = self.get_value(
-                    node.right
-                )
-
-                condition = False
-
-                # =============================
-                # ==
-                # =============================
-
-                if node.operator == "==":
-
-                    condition = left == right
-
-                # =============================
-                # !=
-                # =============================
-
-                elif node.operator == "!=":
-
-                    condition = left != right
-
-                # =============================
-                # >
-                # =============================
-
-                elif node.operator == ">":
-
-                    condition = left > right
-
-                # =============================
-                # <
-                # =============================
-
-                elif node.operator == "<":
-
-                    condition = left < right
-
-                # =============================
-                # >=
-                # =============================
-
-                elif node.operator == ">=":
-
-                    condition = left >= right
-
-                # =============================
-                # <=
-                # =============================
-
-                elif node.operator == "<=":
-
-                    condition = left <= right
-
-                # =============================
-                # JUMP
-                # =============================
-
-                if condition:
-
-                    pc = self.labels.get(
-
-                        node.label,
-
-                        pc
-                    )
-
-                    continue
 
             # =================================
             # LABEL
             # =================================
 
-            elif isinstance(node, LabelNode):
+            elif name == "LabelNode":
 
-                pass
+                code.append(
 
-            # =================================
-            # NEXT INSTRUCTION
-            # =================================
+                    f"LABEL {node.name}"
+                )
 
-            pc += 1
-
-        # =====================================
-        # SYMBOL TABLE
-        # =====================================
-
-        symbol_table = {}
-
-        address = 100
-
-        for variable in self.memory:
-
-            symbol_table[variable] = address
-
-            address += 1
-
-        # =====================================
-        # RETURN RESULT
-        # =====================================
-
-        return {
-
-            "memory": self.memory,
-
-            "output": self.output,
-
-            "debug": self.debug,
-
-            "symbol_table": symbol_table
-        }
+        return code

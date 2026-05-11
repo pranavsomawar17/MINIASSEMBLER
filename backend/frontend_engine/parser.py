@@ -1,160 +1,267 @@
 # backend/frontend_engine/parser.py
 
-from frontend_engine.tokenizer import Tokenizer
-
 from frontend_engine.ast_nodes import *
 
+# =========================================
+# PARSER
+# =========================================
 
 class Parser:
 
-    def __init__(self):
+    # =====================================
+    # PARSE
+    # =====================================
 
-        self.tokenizer = Tokenizer()
+    def parse(self, tokens):
 
-    def parse(self, line):
-
-        line = line.strip()
-
-        if not line:
-
-            return None
-
-        # =====================================
-        # LABEL
-        # =====================================
-
-        if line.endswith(":"):
-
-            label = line.replace(
-                ":",
-                ""
-            ).strip()
-
-            return LabelNode(label)
-
-        tokens = self.tokenizer.tokenize(line)
+        # =================================
+        # EMPTY
+        # =================================
 
         if not tokens:
 
             return None
 
-        # =====================================
-        # BEGIN
-        # =====================================
+        # =================================
+        # STRING -> TOKENS
+        # =================================
 
-        if tokens[0] == "BEGIN":
+        if not isinstance(tokens, list):
+
+            tokens = str(tokens).split()
+
+        tokens = [
+
+            str(token).strip()
+
+            for token in tokens
+
+            if str(token).strip()
+        ]
+
+        # =================================
+        # EMPTY AFTER CLEAN
+        # =================================
+
+        if not tokens:
+
+            return None
+
+        keyword = tokens[0].upper()
+
+        # =================================
+        # BEGIN
+        # =================================
+
+        if keyword == "HELLO":
 
             return BeginNode()
 
+        # =================================
+        # HALT
+        # =================================
+
+        if keyword in [
+
+            "TERMINATE",
+
+            "HALT"
+        ]:
+
+            return HaltNode()
+
+        # =================================
+        # VARIABLE ASSIGN
+        # X ASSIGN 0
+        # =================================
+
+        if len(tokens) >= 3:
+
+            if tokens[1].upper() == "ASSIGN":
+
+                return [
+
+                    VariableNode(
+
+                        tokens[0]
+                    ),
+
+                    MovNode(
+
+                        tokens[0],
+
+                        tokens[2]
+                    )
+                ]
+
+        # =================================
+        # COPY
+        # COPY X, 10
+        # =================================
+
+        if keyword == "COPY":
+
+            variable = (
+
+                tokens[1]
+
+                .replace(",", "")
+            )
+
+            value = tokens[2]
+
+            return MovNode(
+
+                variable,
+
+                value
+            )
+
+        # =================================
+        # PLUS
+        # =================================
+
+        if keyword == "PLUS":
+
+            return AddNode(
+
+                tokens[1],
+
+                tokens[2]
+            )
+
+        # =================================
+        # MINUS
+        # =================================
+
+        if keyword == "MINUS":
+
+            return SubNode(
+
+                tokens[1],
+
+                tokens[2]
+            )
+
+        # =================================
+        # MULTIPLY
+        # =================================
+
+        if keyword == "MULTIPLY":
+
+            return MulNode(
+
+                tokens[1],
+
+                tokens[2]
+            )
+
+        # =================================
+        # DIVIDE
+        # =================================
+
+        if keyword == "DIVIDE":
+
+            return DivNode(
+
+                tokens[1],
+
+                tokens[2]
+            )
+
+        # =================================
+        # SAVE
+        # =================================
+
+        if keyword == "SAVE":
+
+            return StoreNode(
+
+                tokens[1]
+            )
+
+        # =================================
+        # SHOW
+        # =================================
+
+        if keyword == "SHOW":
+
+            return PrintNode(
+
+                tokens[1]
+            )
+
+        # =================================
+        # READ
+        # =================================
+
+        if keyword == "READ":
+
+            return ReadNode(
+
+                tokens[1]
+            )
+
+        # =================================
+        # CMP
+        # =================================
+
+        if keyword == "CMP":
+
+            return CompareNode(
+
+                tokens[1],
+
+                tokens[2]
+            )
+
         # =====================================
-        # DONE
+        # LABEL
+        # LOOP:
         # =====================================
 
-        if tokens[0] == "DONE":
+        if tokens[0].endswith(":"):
 
-            return DoneNode()
+            label = tokens[0].replace(":", "")
+
+            return LabelNode(label)
 
         # =====================================
-        # VARIABLE
+        # HOP
         # =====================================
 
-        if tokens[0] == "NUMBER":
+        if keyword == "HOP":
 
-            return VariableNode(
+            return JumpNode(
 
-                "NUMBER",
+                "ALWAYS",
 
                 tokens[1]
             )
 
         # =====================================
-        # ASK
+        # JZ
         # =====================================
 
-        if tokens[0] == "ASK":
+        if keyword == "JZ":
 
-            return AskNode(tokens[1])
+            return JumpNode(
 
-        # =====================================
-        # SHOW
-        # =====================================
+                "ZERO",
 
-        if tokens[0] == "SHOW":
-
-            return ShowNode(tokens[1])
-
-        # =====================================
-        # IF
-        # =====================================
-
-        if tokens[0] == "IF":
-
-            return IfNode(
-
-                left=tokens[1],
-
-                operator=tokens[2],
-
-                right=tokens[3],
-
-                label=tokens[5]
+                tokens[1]
             )
-        
+
         # =====================================
-        # COMPARE
+        # JNZ
         # =====================================
 
-        if "?" in tokens:
+        if keyword == "JNZ":
 
-            return CompareNode(
+            return JumpNode(
 
-                left=tokens[0],
+                "NOT_ZERO",
 
-                right=tokens[2]
+                tokens[1]
             )
-        
-        # =====================================
-        # ASSIGNMENT
-        # =====================================
-
-        if "=" in tokens:
-
-            target = tokens[0]
-
-            if len(tokens) == 3:
-
-                return AssignmentNode(
-
-                    target=target,
-
-                    left=tokens[2]
-                )
-
-            if len(tokens) == 5:
-
-                return AssignmentNode(
-
-                    target=target,
-
-                    left=tokens[2],
-
-                    operator=tokens[3],
-
-                    right=tokens[4]
-                )
-
-        raise Exception(
-            f"Invalid syntax: {line}"
-        )
-        # =====================================
-        # COMPARE
-        # =====================================
-
-        if "?" in tokens:
-
-            return CompareNode(
-
-                left=tokens[0],
-
-                right=tokens[2]
-            )
+        return None

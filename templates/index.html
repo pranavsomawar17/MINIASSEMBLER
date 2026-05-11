@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assembler Debugger</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#1e1e1e;
+    color:#d4d4d4;
+    font-family:Consolas, monospace;
+    overflow:hidden;
+}
+
+/* ===== TOOLBAR ===== */
+
+.toolbar{
+    height:60px;
+    padding:10px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:1px solid white;
+    background:#252526;
+}
+
+button{
+    background:#2d2d2d;
+    color:white;
+    border:1px solid white;
+    border-radius:10px;
+    padding:8px 14px;
+    cursor:pointer;
+    transition:0.2s;
+    font-family:Consolas;
+    font-size:14px;
+}
+
+button:hover{
+    background:#3a3a3a;
+}
+
+/* ===== MAIN ===== */
+
+.main{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    padding:14px;
+    height:calc(100vh - 60px);
+}
+
+/* ===== PANELS ===== */
+
+.panel{
+    background:#252526;
+    border:1px solid white;
+    border-radius:14px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+.title{
+    text-align:center;
+    font-size:18px;
+    margin-bottom:12px;
+    color:white;
+}
+
+/* ===== EDITOR ===== */
+
+.editor-container{
+    flex:1;
+    display:flex;
+    border:1px solid white;
+    border-radius:12px;
+    overflow:hidden;
+    background:#1e1e1e;
+}
+
+.line-numbers{
+    width:65px;
+    background:#2a2a2a;
+    color:#888;
+    text-align:right;
+    padding:10px 8px;
+    overflow:hidden;
+    user-select:none;
+    line-height:1.5;
+    border-right:1px solid white;
+}
+
+.line-active{
+    color:white;
+}
+
+#editor{
+    flex:1;
+    background:#1e1e1e;
+    color:#d4d4d4;
+    border:none;
+    outline:none;
+    resize:none;
+    padding:10px;
+    font-family:Consolas;
+    font-size:14px;
+    line-height:1.5;
+}
+
+/* ===== RIGHT ===== */
+
+.right{
+    display:grid;
+    grid-template-rows:320px 1fr;
+    gap:14px;
+}
+
+.top{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+/* ===== REGISTERS ===== */
+
+#registers{
+    line-height:2;
+    padding:10px;
+    border:1px solid white;
+    border-radius:10px;
+    height:100%;
+    overflow:auto;
+    background:#1e1e1e;
+}
+
+/* ===== MEMORY ===== */
+
+#memory{
+    width:100%;
+    height:100%;
+    border:1px solid white;
+    border-radius:10px;
+    background:#1e1e1e;
+    color:#d4d4d4;
+    padding:10px;
+}
+
+/* ===== TABS ===== */
+
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+}
+
+.tab{
+    padding:7px 12px;
+    background:#2d2d2d;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid white;
+    transition:0.2s;
+}
+
+.tab:hover{
+    background:#3a3a3a;
+}
+
+/* ===== OUTPUT BOX ===== */
+
+.output-box{
+    flex:1;
+    border:1px solid white;
+    border-radius:12px;
+    padding:12px;
+    overflow:auto;
+    background:#1e1e1e;
+    white-space:pre-wrap;
+}
+
+/* ===== TABLE ===== */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    border:1px solid white;
+    padding:8px;
+    text-align:left;
+}
+
+th{
+    background:#2d2d2d;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- TOOLBAR -->
+
+<div class="toolbar">
+
+    <button onclick="runCode()">Run</button>
+
+    <button onclick="stepForward()">Next</button>
+
+    <button onclick="stepBack()">Previous</button>
+
+    <button onclick="resetAll()">Reset</button>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <!-- LEFT -->
+
+    <div class="panel">
+
+        <div class="title">Code Editor</div>
+
+        <div class="editor-container">
+
+            <div id="lines" class="line-numbers"></div>
+
+            <textarea id="editor"></textarea>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+
+    <div class="right">
+
+        <!-- TOP -->
+
+        <div class="top">
+
+            <!-- REGISTERS -->
+
+            <div class="panel">
+
+                <div class="title">Registers</div>
+
+                <div id="registers"></div>
+
+            </div>
+
+            <!-- MEMORY -->
+
+            <div class="panel">
+
+                <div class="title">Memory</div>
+
+                <textarea id="memory" readonly></textarea>
+
+            </div>
+
+        </div>
+
+        <!-- OUTPUT -->
+
+        <div class="panel">
+
+            <div class="title">Debugger Output</div>
+
+            <div class="tabs">
+
+                <div class="tab" onclick="showTab('output')">Output</div>
+
+                <div class="tab" onclick="showTab('machine')">Machine</div>
+
+                <div class="tab" onclick="showTab('intermediate')">Intermediate</div>
+
+                <div class="tab" onclick="showTab('optimization')">Optimization</div>
+
+                <div class="tab" onclick="showTab('symbols')">Symbols</div>
+
+                <div class="tab" onclick="showTab('errors')">Errors</div>
+
+                <div class="tab" onclick="showTab('debug')">Debug</div>
+
+            </div>
+
+            <div id="output" class="output-box"></div>
+
+            <div id="machine" class="output-box" style="display:none"></div>
+
+            <div id="intermediate" class="output-box" style="display:none"></div>
+
+            <div id="optimization" class="output-box" style="display:none"></div>
+
+            <div id="errors" class="output-box" style="display:none"></div>
+
+            <div id="debug" class="output-box" style="display:none"></div>
+
+            <!-- SYMBOL TABLE -->
+
+            <div id="symbols" class="output-box" style="display:none">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Address</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="symbol-body"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* ===== GLOBAL ===== */
+
+let initialized = false;
+let currentLine = -1;
+
+const editor = document.getElementById("editor");
+const lines = document.getElementById("lines");
+
+/* ===== LINE NUMBERS ===== */
+
+function updateLines(){
+
+    const count = editor.value.split("\n").length;
+
+    lines.innerHTML = "";
+
+    for(let i=0;i<count;i++){
+
+        if(i === currentLine){
+
+            lines.innerHTML += `
+                <div class="line-active">
+                    → ${i+1}
+                </div>
+            `;
+        }
+        else{
+
+            lines.innerHTML += `
+                <div>
+                    ${i+1}
+                </div>
+            `;
+        }
+    }
+}
+
+editor.addEventListener("input", updateLines);
+
+editor.addEventListener("scroll", ()=>{
+
+    lines.scrollTop = editor.scrollTop;
+
+});
+
+updateLines();
+
+/* ===== INIT ===== */
+
+async function initExecution(){
+
+    const res = await fetch("/init",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            code:editor.value
+        })
+
+    });
+
+    const data = await res.json();
+
+    if(data.status === "error"){
+
+        document.getElementById("errors").innerText =
+            data.errors.join("\n");
+
+        showTab("errors");
+
+        return false;
+    }
+
+    /* MACHINE */
+
+    document.getElementById("machine").innerText =
+        data.machine.join("\n");
+
+    /* INTERMEDIATE */
+
+    document.getElementById("intermediate").innerText =
+        data.intermediate.join("\n");
+
+    /* OPTIMIZATION */
+
+    document.getElementById("optimization").innerText =
+        data.optimization.join("\n");
+
+    /* SYMBOL TABLE */
+
+    const body = document.getElementById("symbol-body");
+
+    body.innerHTML = "";
+
+    for(let [sym, addr] of Object.entries(data.symbols)){
+
+        body.innerHTML += `
+            <tr>
+                <td>${sym}</td>
+                <td>${addr}</td>
+            </tr>
+        `;
+    }
+
+    initialized = true;
+
+    return true;
+}
+
+/* ===== STEP FORWARD ===== */
+
+async function stepForward(){
+
+    if(!initialized){
+
+        const ok = await initExecution();
+
+        if(!ok) return;
+    }
+
+    const res = await fetch("/step",{
+        method:"POST"
+    });
+
+    const data = await res.json();
+
+    if(data.pc !== undefined){
+
+        currentLine = data.pc;
+    }
+
+    updateUI(data);
+}
+
+/* ===== STEP BACK ===== */
+
+async function stepBack(){
+
+    if(!initialized) return;
+
+    const res = await fetch("/back",{
+        method:"POST"
+    });
+
+    const data = await res.json();
+
+    if(data.pc !== undefined){
+
+        currentLine = data.pc;
+    }
+    else{
+
+        currentLine = -1;
+    }
+
+    updateUI(data);
+}
+
+/* ===== RUN ===== */
+
+async function runCode(){
+
+    if(!initialized){
+
+        const ok = await initExecution();
+
+        if(!ok) return;
+    }
+
+    const res = await fetch("/run",{
+        method:"POST"
+    });
+
+    const data = await res.json();
+
+    /* IMPORTANT FIX */
+
+    if(data.pc !== undefined){
+
+        currentLine = data.pc;
+    }
+
+    updateUI(data);
+}
+
+/* ===== RESET ===== */
+
+async function resetAll(){
+
+    await fetch("/reset",{
+        method:"POST"
+    });
+
+    initialized = false;
+    currentLine = -1;
+
+    document.getElementById("registers").innerHTML = "";
+    document.getElementById("memory").value = "";
+    document.getElementById("output").innerText = "";
+    document.getElementById("errors").innerText = "";
+    document.getElementById("debug").innerText = "";
+
+    updateLines();
+}
+
+/* ===== UPDATE UI ===== */
+
+function updateUI(data){
+
+    if(data.status === "error"){
+
+        document.getElementById("errors").innerText =
+            data.errors.join("\n");
+
+        showTab("errors");
+
+        return;
+    }
+
+    /* REGISTERS */
+
+    const reg = document.getElementById("registers");
+
+    reg.innerHTML = "";
+
+    for(let r in data.registers){
+
+        reg.innerHTML += `${r} = ${data.registers[r]}<br>`;
+    }
+
+    /* MEMORY */
+
+    const mem = document.getElementById("memory");
+
+    mem.value = "";
+
+    for(let m in data.memory){
+
+        mem.value += `${m}: ${data.memory[m]}\n`;
+    }
+
+    /* OUTPUT */
+
+    const output = document.getElementById("output");
+
+    output.innerText = "";
+
+    if(data.output){
+
+        for(let key in data.output){
+
+            output.innerText += `${key} = ${data.output[key]}\n`;
+        }
+    }
+
+    /* DEBUG */
+
+    if(data.debug){
+
+        document.getElementById("debug").innerText =
+            data.debug.join("\n");
+    }
+
+    updateLines();
+}
+
+/* ===== TABS ===== */
+
+function showTab(id){
+
+    const tabs = [
+        "output",
+        "machine",
+        "intermediate",
+        "optimization",
+        "symbols",
+        "errors",
+        "debug"
+    ];
+
+    tabs.forEach(t=>{
+
+        document.getElementById(t).style.display = "none";
+
+    });
+
+    document.getElementById(id).style.display = "block";
+}
+
+</script>
+
+</body>
+</html>

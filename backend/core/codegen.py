@@ -1,23 +1,20 @@
 # backend/core/codegen.py
 
-from frontend_engine.ast_nodes import *
-
-
 class CodeGenerator:
+
+    # =====================================
+    # INIT
+    # =====================================
 
     def __init__(self):
 
-        self.intermediate = []
-
-        self.machine = []
-
-        self.address = 100
-
         self.opcodes = {
 
-            "LOAD": "01",
+            "BEGIN": "00",
 
-            "STORE": "02",
+            "DECLARE": "01",
+
+            "SET": "02",
 
             "ADD": "03",
 
@@ -27,22 +24,44 @@ class CodeGenerator:
 
             "DIV": "06",
 
-            "MOD": "07",
+            "SAVE": "07",
 
-            "PRINT": "08",
+            "SHOW": "08",
 
             "READ": "09",
 
-            "JMP": "10",
+            "CMP": "0A",
 
-            "JLT": "11",
+            "JNZ": "0C",
 
-            "JGT": "12",
+            "JZ": "0D",
 
-            "JEQ": "13",
+            "HOP": "0E",
+
+            "LABEL": "0F",
 
             "HALT": "FF"
         }
+
+        self.reset()
+
+    # =====================================
+    # RESET
+    # =====================================
+
+    def reset(self):
+
+        self.intermediate = []
+
+        self.vm = []
+
+        self.machine = []
+
+        self.address = 100
+
+        self.labels = {}
+
+        self.variables = set()
 
     # =====================================
     # GENERATE
@@ -50,36 +69,207 @@ class CodeGenerator:
 
     def generate(self, ast):
 
+        self.reset()
+
+        # =================================
+        # FIRST PASS
+        # LABEL ADDRESSES
+        # =================================
+
+        temp_address = self.address
+
         for node in ast:
 
+            node_name = node.__class__.__name__
+
+            if node_name == "LabelNode":
+
+                self.labels[node.name] = temp_address
+
+            else:
+
+                temp_address += 1
+
+        # =================================
+        # SECOND PASS
+        # =================================
+
+        for node in ast:
+
+            node_name = node.__class__.__name__
+
             # =============================
-            # ASSIGNMENT
+            # BEGIN
             # =============================
 
-            if isinstance(node, AssignmentNode):
+            if node_name in [
 
-                self.assignment(node)
+                "StartNode",
+
+                "BeginNode"
+            ]:
+
+                self.emit(
+
+                    "HELLO",
+
+                    "BEGIN"
+                )
+
+            # =============================
+            # MOV
+            # =============================
+
+            elif node_name == "MovNode":
+
+                variable = node.variable
+
+                value = node.value
+
+                # =========================
+                # DECLARE ONCE
+                # =========================
+
+                if variable not in self.variables:
+
+                    self.emit(
+
+                        f"{variable} ASSIGN 0",
+
+                        "DECLARE",
+
+                        variable
+                    )
+
+                    self.variables.add(variable)
+
+                # =========================
+                # SET
+                # =========================
+
+                self.emit(
+
+                    f"COPY {variable}, {value}",
+
+                    "SET",
+
+                    f"{variable} {value}"
+                )
+
+            # =============================
+            # ADD
+            # =============================
+
+            elif node_name == "AddNode":
+
+                self.emit(
+
+                    f"PLUS {node.left} {node.right}",
+
+                    "ADD",
+
+                    f"{node.left} {node.right}"
+                )
+
+            # =============================
+            # SUB
+            # =============================
+
+            elif node_name == "SubNode":
+
+                self.emit(
+
+                    f"MINUS {node.left} {node.right}",
+
+                    "SUB",
+
+                    f"{node.left} {node.right}"
+                )
+
+            # =============================
+            # MUL
+            # =============================
+
+            elif node_name == "MulNode":
+
+                self.emit(
+
+                    f"MULTIPLY {node.left} {node.right}",
+
+                    "MUL",
+
+                    f"{node.left} {node.right}"
+                )
+
+            # =============================
+            # DIV
+            # =============================
+
+            elif node_name == "DivNode":
+
+                self.emit(
+
+                    f"DIVIDE {node.left} {node.right}",
+
+                    "DIV",
+
+                    f"{node.left} {node.right}"
+                )
+
+            # =============================
+            # SAVE
+            # =============================
+
+            elif node_name == "StoreNode":
+
+                variable = node.variable
+
+                if variable not in self.variables:
+
+                    self.emit(
+
+                        f"{variable} ASSIGN 0",
+
+                        "DECLARE",
+
+                        variable
+                    )
+
+                    self.variables.add(variable)
+
+                self.emit(
+
+                    f"SAVE {variable}",
+
+                    "SAVE",
+
+                    variable
+                )
 
             # =============================
             # SHOW
             # =============================
 
-            elif isinstance(node, ShowNode):
+            elif node_name == "PrintNode":
 
                 self.emit(
 
-                    "PRINT",
+                    f"SHOW {node.variable}",
+
+                    "SHOW",
 
                     node.variable
                 )
 
             # =============================
-            # ASK
+            # READ
             # =============================
 
-            elif isinstance(node, AskNode):
+            elif node_name == "ReadNode":
 
                 self.emit(
+
+                    f"READ {node.variable}",
 
                     "READ",
 
@@ -87,71 +277,123 @@ class CodeGenerator:
                 )
 
             # =============================
-            # DONE
+            # CMP
             # =============================
 
-            elif isinstance(node, DoneNode):
+            elif node_name == "CompareNode":
 
-                self.emit("HALT")
+                self.emit(
+
+                    f"CMP {node.left} {node.right}",
+
+                    "CMP",
+
+                    f"{node.left} {node.right}"
+                )
+
+            # =============================
+            # LABEL
+            # =============================
+
+            elif node_name == "LabelNode":
+
+                self.emit(
+
+                    f"{node.name}:",
+
+                    "LABEL",
+
+                    node.name
+                )
+
+            # =============================
+            # JUMP
+            # =============================
+
+            elif node_name == "JumpNode":
+
+                target = self.labels.get(
+
+                    node.label,
+
+                    0
+                )
+
+                # =========================
+                # JZ
+                # =========================
+
+                if node.condition == "ZERO":
+
+                    self.emit(
+
+                        f"JZ {node.label}",
+
+                        "JZ",
+
+                        f"{node.label} {target}"
+                    )
+
+                # =========================
+                # JNZ
+                # =========================
+
+                elif node.condition == "NOT_ZERO":
+
+                    self.emit(
+
+                        f"JNZ {node.label}",
+
+                        "JNZ",
+
+                        f"{node.label} {target}"
+                    )
+
+                # =========================
+                # HOP
+                # =========================
+
+                else:
+
+                    self.emit(
+
+                        f"HOP {node.label}",
+
+                        "HOP",
+
+                        f"{node.label} {target}"
+                    )
+
+            # =============================
+            # HALT
+            # =============================
+
+            elif node_name in [
+
+                "EndNode",
+
+                "HaltNode"
+            ]:
+
+                self.emit(
+
+                    "TERMINATE",
+
+                    "HALT"
+                )
+
+        # =================================
+        # RETURN
+        # =================================
 
         return {
 
             "intermediate": self.intermediate,
 
+            "vm": self.vm,
+
             "machine": self.machine
         }
-
-    # =====================================
-    # ASSIGNMENT
-    # =====================================
-
-    def assignment(self, node):
-
-        if node.operator is None:
-
-            self.emit(
-                "LOAD",
-                node.left
-            )
-
-            self.emit(
-                "STORE",
-                node.target
-            )
-
-            return
-
-        self.emit(
-            "LOAD",
-            node.left
-        )
-
-        operators = {
-
-            "+": "ADD",
-
-            "-": "SUB",
-
-            "*": "MUL",
-
-            "/": "DIV",
-
-            "%": "MOD"
-        }
-
-        opcode = operators.get(
-            node.operator
-        )
-
-        self.emit(
-            opcode,
-            node.right
-        )
-
-        self.emit(
-            "STORE",
-            node.target
-        )
 
     # =====================================
     # EMIT
@@ -161,35 +403,51 @@ class CodeGenerator:
 
         self,
 
+        intermediate,
+
         instruction,
 
         operand=None
     ):
 
-        # =============================
+        # =================================
         # INTERMEDIATE
-        # =============================
+        # =================================
+
+        self.intermediate.append(
+
+            intermediate
+        )
+
+        # =================================
+        # VM
+        # =================================
 
         if operand:
 
-            self.intermediate.append(
+            vm_line = (
 
-                f"({instruction}, {operand})"
+                instruction
+                +
+                " "
+                +
+                operand
             )
 
         else:
 
-            self.intermediate.append(
+            vm_line = instruction
 
-                f"({instruction})"
-            )
+        self.vm.append(vm_line)
 
-        # =============================
+        # =================================
         # MACHINE
-        # =============================
+        # =================================
 
         opcode = self.opcodes.get(
+
             instruction,
+
             "??"
         )
 
@@ -198,9 +456,9 @@ class CodeGenerator:
             machine_line = (
 
                 f"{self.address}  "
-
+                +
                 f"{opcode}  "
-
+                +
                 f"{operand}"
             )
 
@@ -209,11 +467,12 @@ class CodeGenerator:
             machine_line = (
 
                 f"{self.address}  "
-
+                +
                 f"{opcode}"
             )
 
         self.machine.append(
+
             machine_line
         )
 

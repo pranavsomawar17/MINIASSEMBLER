@@ -1,162 +1,114 @@
-# backend/frontend_engine/ast_nodes.py
-
-class ASTNode:
-    pass
-
-
 # =========================================
-# BEGIN
+# PROGRAM CONTROL
 # =========================================
 
-class BeginNode(ASTNode):
+class BeginNode:
 
-    def __repr__(self):
+    def __str__(self):
 
         return "BeginNode()"
 
 
-# =========================================
-# DONE
-# =========================================
+class EndNode:
 
-class DoneNode(ASTNode):
+    def __str__(self):
 
-    def __repr__(self):
-
-        return "DoneNode()"
+        return "EndNode()"
 
 
-# =========================================
-# VARIABLE
-# =========================================
+class HaltNode:
 
-class VariableNode(ASTNode):
+    def __str__(self):
 
-    def __init__(self, var_type, name):
-
-        self.var_type = var_type
-
-        self.name = name
-
-    def __repr__(self):
-
-        return f"VariableNode({self.var_type}, {self.name})"
+        return "HaltNode()"
 
 
 # =========================================
-# ASSIGNMENT
+# MEMORY
 # =========================================
 
-class AssignmentNode(ASTNode):
-
-    def __init__(
-        self,
-        target,
-        left,
-        operator=None,
-        right=None
-    ):
-
-        self.target = target
-
-        self.left = left
-
-        self.operator = operator
-
-        self.right = right
-
-    def __repr__(self):
-
-        return (
-            f"AssignmentNode("
-            f"{self.target}, "
-            f"{self.left}, "
-            f"{self.operator}, "
-            f"{self.right})"
-        )
-
-
-# =========================================
-# SHOW
-# =========================================
-
-class ShowNode(ASTNode):
-
-    def __init__(self, variable):
-
-        self.variable = variable
-
-    def __repr__(self):
-
-        return f"ShowNode({self.variable})"
-
-
-# =========================================
-# ASK
-# =========================================
-
-class AskNode(ASTNode):
-
-    def __init__(self, variable):
-
-        self.variable = variable
-
-    def __repr__(self):
-
-        return f"AskNode({self.variable})"
-
-
-# =========================================
-# LABEL
-# =========================================
-
-class LabelNode(ASTNode):
+class VariableNode:
 
     def __init__(self, name):
 
         self.name = name
 
-    def __repr__(self):
+    def __str__(self):
 
-        return f"LabelNode({self.name})"
+        return f"VariableNode(name={self.name})"
 
 
-# =========================================
-# IF
-# =========================================
+class ConstantNode:
 
-class IfNode(ASTNode):
+    def __init__(self, name, value):
 
-    def __init__(
-        self,
-        left,
-        operator,
-        right,
-        label
-    ):
+        self.name = name
 
-        self.left = left
+        self.value = value
 
-        self.operator = operator
-
-        self.right = right
-
-        self.label = label
-
-    def __repr__(self):
+    def __str__(self):
 
         return (
-            f"IfNode("
-            f"{self.left}, "
-            f"{self.operator}, "
-            f"{self.right}, "
-            f"{self.label})"
+
+            f"ConstantNode("
+            f"name={self.name}, "
+            f"value={self.value})"
         )
+
+
+class MovNode:
+
+    def __init__(self, variable, value):
+
+        self.variable = variable
+
+        self.value = value
+
+    def __str__(self):
+
+        return (
+
+            f"MovNode("
+            f"variable={self.variable}, "
+            f"value={self.value})"
+        )
+
+
+class LoadNode:
+
+    def __init__(self, variable):
+
+        self.variable = variable
+
+    def __str__(self):
+
+        return (
+
+            f"LoadNode("
+            f"variable={self.variable})"
+        )
+
+
+class StoreNode:
+
+    def __init__(self, variable):
+
+        self.variable = variable
+
+    def __str__(self):
+
+        return (
+
+            f"StoreNode("
+            f"variable={self.variable})"
+        )
+
+
 # =========================================
-# COMPARE
+# ARITHMETIC
 # =========================================
 
-class CompareNode(ASTNode):
+class AddNode:
 
     def __init__(self, left, right):
 
@@ -164,6 +116,158 @@ class CompareNode(ASTNode):
 
         self.right = right
 
-    def __repr__(self):
+    def __str__(self):
 
-        return f"CompareNode({self.left}, {self.right})"
+        return (
+
+            f"AddNode("
+            f"left={self.left}, "
+            f"right={self.right})"
+        )
+
+
+class SubNode:
+
+    def __init__(self, left, right):
+
+        self.left = left
+
+        self.right = right
+
+    def __str__(self):
+
+        return (
+
+            f"SubNode("
+            f"left={self.left}, "
+            f"right={self.right})"
+        )
+
+
+class MulNode:
+
+    def __init__(self, left, right):
+
+        self.left = left
+
+        self.right = right
+
+    def __str__(self):
+
+        return (
+
+            f"MulNode("
+            f"left={self.left}, "
+            f"right={self.right})"
+        )
+
+
+class DivNode:
+
+    def __init__(self, left, right):
+
+        self.left = left
+
+        self.right = right
+
+    def __str__(self):
+
+        return (
+
+            f"DivNode("
+            f"left={self.left}, "
+            f"right={self.right})"
+        )
+
+
+# =========================================
+# INPUT OUTPUT
+# =========================================
+
+class PrintNode:
+
+    def __init__(self, variable):
+
+        self.variable = variable
+
+    def __str__(self):
+
+        return (
+
+            f"PrintNode("
+            f"variable={self.variable})"
+        )
+
+
+class ReadNode:
+
+    def __init__(self, variable):
+
+        self.variable = variable
+
+    def __str__(self):
+
+        return (
+
+            f"ReadNode("
+            f"variable={self.variable})"
+        )
+
+
+# =========================================
+# COMPARISON
+# =========================================
+
+class CompareNode:
+
+    def __init__(self, left, right):
+
+        self.left = left
+
+        self.right = right
+
+    def __str__(self):
+
+        return (
+
+            f"CompareNode("
+            f"left={self.left}, "
+            f"right={self.right})"
+        )
+
+
+# =========================================
+# FLOW CONTROL
+# =========================================
+
+class JumpNode:
+
+    def __init__(self, condition, label):
+
+        self.condition = condition
+
+        self.label = label
+
+    def __str__(self):
+
+        return (
+
+            f"JumpNode("
+            f"condition={self.condition}, "
+            f"label={self.label})"
+        )
+
+
+class LabelNode:
+
+    def __init__(self, name):
+
+        self.name = name
+
+    def __str__(self):
+
+        return (
+
+            f"LabelNode("
+            f"name={self.name})"
+        )
